@@ -119,6 +119,7 @@ $porcentajeActividadFisica = $promedioActividadFisica*100/7;
     <script src="./js/presentation.js"></script>
     <script src="./js/fuzzy-min.js"></script>
 
+
         <!-- ReportePIE -->
     <!-- <script src="./js/Chart.min.js"></script> -->
 	<!-- <script src="../sistema/js/Chart.min.js"></script> -->
@@ -437,6 +438,93 @@ $porcentajeActividadFisica = $promedioActividadFisica*100/7;
                             </div>
                         </div>
                     </div>
+
+                    <!-- Striped table start -->
+                    <div class="col-12 mt-5">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="header-title">Striped Rows</h4>
+                                <div class="single-table">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped text-center">
+                                            <thead class="text-uppercase">
+                                                <tr>
+                                                    <th scope="col">DNI</th>
+                                                    <th scope="col">NOMBRE</th>
+                                                    <th scope="col">EDAD</th>
+                                                    <th scope="col">ALIMENTACION</th>
+                                                    <th scope="col">GENETICA</th>
+                                                    <th scope="col">GLUCOSA</th>
+                                                    <th scope="col">ACTIVIDAD FISICA</th>
+                                                    <th scope="col">RESULTADO</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                // $sql = "select e.dni,e.nombre,e.edad, etv.id_variable, etv.resultado as resultado_variable, et.resultado as resultado_riesgo from estudiante_test_variable etv
+                                                // inner join estudiante_test et on etv.id_test_estudiante = et.id
+                                                // inner join estudiante e on et.id_estudiante = e.dni
+                                                // where et.id_test=$id";
+                                                $sql = "select  e.dni,e.nombre,e.edad,et.resultado from estudiante e
+                                                inner join estudiante_test et on e.dni=et.id_estudiante
+                                                where id_test=$id";
+                                                $result = $cnx->query($sql) or die("error");
+                                                while($reg=$result->fetchObject()){
+                                                    $dni = $reg->dni;
+                                                    echo "
+                                                        <tr>
+                                                            <th scope='row'>$dni</th>
+                                                            <td>$reg->nombre</td>
+                                                            <td>$reg->edad</td>
+                                                    ";
+                                                    //ALIMENTACION
+                                                    $sql = "select etv.resultado
+                                                    from estudiante_test_variable etv
+                                                    inner join estudiante_test et on etv.id_test_estudiante=et.id
+                                                    where etv.id_variable=1 and et.id_estudiante='$dni' and et.id_test=$id;";
+                                                    $r = $cnx->query($sql) or die("error");
+                                                    if($re=$r-> fetchObject()){
+                                                       echo "<td>$re->resultado</td>";
+                                                    }
+                                                    //GENETICA
+                                                    $sql = "select etv.resultado
+                                                    from estudiante_test_variable etv
+                                                    inner join estudiante_test et on etv.id_test_estudiante=et.id
+                                                    where etv.id_variable=2 and et.id_estudiante='$dni' and et.id_test=$id;";
+                                                    $r = $cnx->query($sql) or die("error");
+                                                    if($re=$r->fetchObject()){
+                                                       echo "<td>$re->resultado</td>";
+                                                    }
+                                                    //GLUCOSA
+                                                    $sql = "select etv.resultado
+                                                    from estudiante_test_variable etv
+                                                    inner join estudiante_test et on etv.id_test_estudiante=et.id
+                                                    where etv.id_variable=3 and et.id_estudiante='$dni' and et.id_test=$id;";
+                                                    $r = $cnx->query($sql) or die("error");
+                                                    if($re=$r->fetchObject()){
+                                                       echo "<td>$re->resultado</td>";
+                                                    }
+                                                    //ACTIVIDAD FISICA
+                                                    $sql = "select etv.resultado
+                                                    from estudiante_test_variable etv
+                                                    inner join estudiante_test et on etv.id_test_estudiante=et.id
+                                                    where etv.id_variable=1 and et.id_estudiante='$dni' and et.id_test=$id;";
+                                                    $r = $cnx->query($sql) or die("error");
+                                                    if($re=$r->fetchObject()){
+                                                       echo "<td>$re->resultado</td>";
+                                                    }
+                                                    echo "<td>$reg->resultado</td>";
+                                                }
+                                                ?>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Striped table end -->
 
                 </div>
             </div>
