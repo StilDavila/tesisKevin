@@ -7,12 +7,28 @@ $contadorBajo;
 $contadorNormal;
 $contadorAlto;
 $contadorCritico;
+$acumuladorAlimentacion = 0;
+$acumuladorGenetica = 0;
+$acumuladorGlucosa = 0;
+$acumuladorActividadFisica = 0;
+$promedioAlimentacion;
+$promedioGenetica;
+$promedioGlucosa;
+$promedioActividadFisica;
 
 $sql = "select nombre from test where id=$id";
 $result = $cnx->query($sql) or die("error");
 if($reg=$result->fetchObject()){
     $nombre = $reg->nombre;
-}
+};
+
+$sql = "select count(*) as cantidad from estudiante_test where id_test=$id;";
+$result = $cnx->query($sql) or die("error");
+
+if($reg=$result->fetchObject()){
+    $cantidad = $reg->cantidad;
+    // echo 'Cantidad de participantes: '.$reg->cantidad;
+};
 
 $sql = "select resultado from estudiante_test where id_test=$id";
 $result = $cnx->query($sql) or die("error");
@@ -37,7 +53,41 @@ while($reg=$result->fetchObject()){
         // alert("RIESGO CRITICO");
         $contadorCritico++;
     }
-}
+};
+
+$sql = "select etv.* from estudiante_test_variable etv
+inner join estudiante_test et on etv.id_test_estudiante = et.id
+where et.id_test=$id";
+$result = $cnx->query($sql) or die("error");
+while($reg=$result->fetchObject()){
+    // echo 'IdVarible: '.$reg->id_variable.'.   ';
+    // echo 'IdVarible: '.$reg->id_variable.'Resultado: '.$reg->resultado.'</br>';
+    if($reg->id_variable==1){
+        $acumuladorAlimentacion = $acumuladorAlimentacion + $reg->resultado;
+        // echo 'Acumulador Alimentacion: '.$acumuladorAlimentacion.'</br>';
+    }
+    if($reg->id_variable==2){
+        $acumuladorGenetica = $acumuladorGenetica + $reg->resultado;
+    }
+    if($reg->id_variable==3){
+        $acumuladorGlucosa = $acumuladorGlucosa + $reg->resultado;
+    }
+    if($reg->id_variable==4){
+        $acumuladorActividadFisica = $acumuladorActividadFisica + $reg->resultado;
+    }
+};
+
+$promedioAlimentacion = $acumuladorAlimentacion/$cantidad;
+$promedioGenetica = $acumuladorGenetica/$cantidad;
+$promedioGlucosa = $acumuladorGlucosa/$cantidad;
+$promedioActividadFisica = $acumuladorActividadFisica/$cantidad;
+// echo $promedioAlimentacion.' - '.$promedioGenetica.' - '.$promedioGlucosa.' - '.$promedioActividadFisica;
+
+$porcentajeAlimentacion = $promedioAlimentacion*100/7;
+$porcentajeGenetica = $promedioGenetica*100/5;
+$porcentajeGlucosa = $promedioGlucosa*100/140;
+$porcentajeActividadFisica = $promedioActividadFisica*100/7;
+// echo $porcentajeAlimentacion.' - '.$porcentajeGenetica.' - '.$porcentajeGlucosa.' - '.$porcentajeActividadFisica;
 ?>
 <!doctype html>
 <html class="no-js" lang="en">
@@ -201,13 +251,7 @@ while($reg=$result->fetchObject()){
                                     <div class="seo-fact sbg1">
                                     <?php
                                         // echo $id;
-                                        $sql = "select count(*) as cantidad from estudiante_test where id_test=$id;";
-                                        $result = $cnx->query($sql) or die("error");
 
-                                        if($reg=$result->fetchObject()){
-                                            $cantidad = $reg->cantidad;
-                                            // echo 'Cantidad de participantes: '.$reg->cantidad;
-                                        };
 
                                         $sql = "select sum(resultado)/count(*) as promedio_general from estudiante_test where id_test=$id;";
                                         $result = $cnx->query($sql) or die("error");
@@ -283,6 +327,115 @@ while($reg=$result->fetchObject()){
                     <div id="contenedor" class="col-lg-6" style="width:60%;">
                         <canvas id="chart-area" style="background-color:#ffffff"></canvas>
                         <div id="legend" style="background-color:#ffffff"></div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="header-title">PORCENTAJES</h4>
+                                <div class="single-table">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover progress-table text-center">
+                                            <thead class="text-uppercase">
+                                                <tr>
+
+                                                    <th scope="col">VARIBALE</th>
+                                                    <th scope="col">PROMEDIO</th>
+                                                    <th scope="col">GRAVEDAD</th>
+                                                    <th scope="col">ESTADO</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">ALIMENTACION</th>
+                                                    <td><?php echo $promedioAlimentacion?></td>
+                                                    <td>
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar" role="progressbar" style="width: <?php echo $porcentajeAlimentacion?>%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                    </td>
+                                                    <?php
+                                                        if($promedioAlimentacion>0 && $promedioAlimentacion<1){
+                                                            echo '<td><span class="status-p bg-warning">Nada</span></td>';
+                                                        };
+                                                        if($promedioAlimentacion>=1 && $promedioAlimentacion<=3){
+                                                            echo '<td><span class="status-p bg-warning">Poco</span></td>';
+                                                        };
+                                                        if($promedioAlimentacion>3 && $promedioAlimentacion<7){
+                                                            echo '<td><span class="status-p bg-success">Mucho</span></td>';
+                                                        };
+                                                    ?>
+
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">GENÉTICA</th>
+                                                    <td><?php echo $promedioGenetica?></td>
+                                                    <td>
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar" role="progressbar" style="width: <?php echo $porcentajeGenetica?>%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                    </td>
+                                                    <?php
+                                                        if($promedioGenetica>0 && $promedioGenetica<=1){
+                                                            echo '<td><span class="status-p bg-success">Ninguno</span></td>';
+                                                        };
+                                                        if($promedioGenetica>1 && $promedioGenetica<=3){
+                                                            echo '<td><span class="status-p bg-primary">Leve</span></td>';
+                                                        };
+                                                        if($promedioGenetica>3 & $promedioGenetica<=5){
+                                                            echo '<td><span class="status-p bg-warning">Grave</span></td>';
+                                                        };
+                                                    ?>
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">GLUCOSA</th>
+                                                    <td><?php echo $promedioGlucosa?></td>
+                                                    <td>
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar" role="progressbar" style="width: <?php echo $porcentajeGlucosa?>%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                    </td>
+                                                    <?php
+                                                        if($promedioGlucosa>0 && $promedioGlucosa<=90){
+                                                            echo '<td><span class="status-p bg-success">Normal</span></td>';
+                                                        };
+                                                        if($promedioGlucosa>90 && $promedioGlucosa<=126){
+                                                            echo '<td><span class="status-p bg-warning">Preocupante</span></td>';
+                                                        };
+                                                        if($promedioGlucosa>126 && $promedioGlucosa<=200){
+                                                            echo '<td><span class="status-p bg-warning">Muy preocupante</span></td>';
+                                                        };
+                                                    ?>
+                                                </tr>
+
+                                                <tr>
+                                                    <th scope="row">ACTIVIDAD FISICA</th>
+                                                    <td><?php echo $promedioActividadFisica?></td>
+                                                    <td>
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar" role="progressbar" style="width: <?php echo $porcentajeActividadFisica?>%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                    </td>
+                                                    <?php
+                                                        if($promedioActividadFisica>0 && $promedioActividadFisica<=1.5){
+                                                            echo '<td><span class="status-p bg-warning">Bajo</span></td>';
+                                                        };
+                                                        if($promedioActividadFisica>1.5 && $promedioActividadFisica<=3){
+                                                            echo '<td><span class="status-p bg-primary">Normal</span></td>';
+                                                        };
+                                                        if($promedioActividadFisica>3 && $promedioActividadFisica<=7){
+                                                            echo '<td><span class="status-p bg-success">Alto</span></td>';
+                                                        };
+                                                    ?>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
